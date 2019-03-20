@@ -26,7 +26,7 @@ p2
 p3<- ggplot(data=OC, aes(x=Month, y=ShellLength))+geom_boxplot()+theme_classic()
 p3
 
-multiplot(p1, p2, p3, cols=2)
+multiplot(p1, p2, p3, cols=3)
 
 #Table function is an easy way of checking the number of observations per month, per feeding plot,
 #and per feeding type 
