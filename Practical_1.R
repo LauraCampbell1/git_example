@@ -1,17 +1,24 @@
-install.packages("readr")
+#install.packages("readr")
+
+#Load up libraries 
 library(readr)
-OC <- read_tsv("data/OystercatcherData.txt")
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+OC <- read_tsv("OystercatcherData.txt")
 summary(OC)
 
+
+#load source for multiplots ####
 source("Multiplot_script.R")
 
-#set Month, FeedingType and FeedingPlot as factors.
+#set Month, FeedingType and FeedingPlot as factors.####
 OC$Month<- as.factor(OC$Month)
 OC$FeedingType<- as.factor(OC$FeedingType)
 OC$FeedingPlot<- as.factor(OC$FeedingPlot)
 summary(OC)
 
-library(ggplot2)
+
 p1<- ggplot(data=OC, aes(x=FeedingType, y=ShellLength))+geom_boxplot()+theme_classic()
 p1
 p2<- ggplot(data=OC, aes(x=FeedingPlot, y=ShellLength))+geom_boxplot()+theme_classic()
@@ -21,7 +28,8 @@ p3
 
 multiplot(p1, p2, p3, cols=2)
 
-#Table function is an easy way of checking the number of observations per month, per feeding plot, and per feeding type 
+#Table function is an easy way of checking the number of observations per month, per feeding plot,
+#and per feeding type 
 
 table(OC$Month)
 table(OC$FeedingPlot)
@@ -35,8 +43,12 @@ drop1(M1, test = "F")
 
 plot(M1)
 
+#model without 3 - way
+M2 <- update(M1, . ~ . -Month:FeedingPlot:FeedingType) 
+plot(M2)
 
-#let's look at the residuals for each predictor separately
+
+#let's look at the residuals for each predictor separately ####
 
 E1<- rstandard(M1) #extract standardised residuals
 p1r<-ggplot(data=OC, aes(x=FeedingType, y=E1))+
@@ -57,6 +69,7 @@ p3r<-ggplot(data=OC, aes(x=Month, y=E1))+
   theme_classic()
 p3r
 
+#draw a multiplot###
 
 multiplot(p1r, p2r, p3r, cols = 2)
 
@@ -69,7 +82,7 @@ MyData <- expand.grid(
 MyData
 
 
-#do the actual prediction
+#do the actual prediction ####
 
 P1<- predict(M1, newdata=MyData, se=TRUE)
 
@@ -80,10 +93,8 @@ MyData$se.low <- P1$fit - 1.96 * P1$se.fit
 MyData$se.up <- P1$fit + 1.96 * P1$se.fit
 print(MyData, digits =3)
 
-#let's visualise
+#let's visualise ####
 
-library(magrittr)
-library(dplyr)
 
 MyData %>% 
   mutate(treatment = paste(FeedingType, FeedingPlot, Month)) %>% 
@@ -108,5 +119,10 @@ p<-p+geom_errorbar(data = MyData,
                    aes(x= FeedingType,
                 ymax=se.up, 
                 ymin=se.low), 
-                width=0.2)
+                width=0.2)+
+  theme_bw()
+
 p
+
+#adding comments
+
